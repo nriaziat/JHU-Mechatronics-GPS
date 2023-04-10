@@ -19,6 +19,16 @@ Navigate to the ArduinoGPS.zip file in your newly cloned directory and install.
 
 Once the library is installed, you can include the appropriate headers for the Mega by adding the "GPS.h" header to your code.
 
+- `#include "GPS.h` must be at the top of your main .ino file
+- Instantiate a GPS object like: `GPS gps`
+- Start the GPS object in your with `gps.begin()`
+- Update odometry with `gps.updateOdometry(ditance, angle);`
+- Get the updates pose with  `gps.getPose();`. It returns a robotPose structure.
+- The robotPose structure includes three members: `x, y, theta` in the world frame.
+
+
+
+
 # Structure
 
 The structure of your new Arduino project is as follows:
@@ -28,12 +38,13 @@ The structure of your new Arduino project is as follows:
 ├── ArduinoGPS                        Arduino MEGA GPS Library
 │   └── GPS.h                         Arduino Source File
 │   └── GPS.cpp                       Arduino Source File
-│   └── examples                      
-│       └── ArduinoGPS.ino            Arduino Usage Example
+│   └── ArduinoGPS.ino                Arduino Usage Example
 ├── constellationGPS                  Main sketch file
-│   └── constellationGPS.h            Teensy Source File
-│   └── constellationGPS.cpp          Teensy Source File
-│   └── constellationGPS.ino          Teensy Main Sketch
+│   └── IRCam.h                       Teensy Source File
+│   └── IRCam.cpp                     Teensy Source File
+│   └── ParticleFilter.cpp            Teensy Source File
+│   └── ParticleFilter.h              Teensy Source File
+│   └── ParticleFilter.ino            Teensy Main Sketch
 ├── ProcessingVisualizer              Processing Debugger
 │   └── readConstellationGPS.pde      Main Processing sketch
 ├── ArduinoGPS.zip                    Library Folder
