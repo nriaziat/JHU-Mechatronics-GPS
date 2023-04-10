@@ -36,7 +36,7 @@ The camera's top surface should be mounted precisely at 6 cm from the ground.
 
 # Structure
 
-The structure of your new Arduino project is as follows:
+The structure of this project is as follows:
 
 ```shell
 .
