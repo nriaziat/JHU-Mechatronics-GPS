@@ -28,6 +28,12 @@ Once the library is installed, you can include the appropriate headers for the M
 - The robotPose structure includes three members: `x, y, theta` in centimeters/radians in the world frame.
 - The world frame is aligned with the marked corner of the field with the y-axis along the short edge and angles measured counter-clockwise from the x-axis.
 
+## Hardware and Electronics
+
+The Teensy's Vin port should be connected to +5 V and ground to the Arduino ground. The SDA1 and SCL1 ports on the Teensy (pins 17 and 16) should be connected to SDA and SCL on the Arduino Mega. The camera itself needs +5 V power and ground as well as its SDA and SCL connected to SDA0 and SCL0 on the Teensy (pins 19 and 18).
+
+The camera's top surface should be mounted precisely at 6 cm from the ground. 
+
 # Structure
 
 The structure of your new Arduino project is as follows:
