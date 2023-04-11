@@ -4,7 +4,8 @@ This library interfaces a [SEN0158](https://www.dfrobot.com/product-1088.html) I
 
 # Dependencies
 
-* Arduino IDE >= 1.5
+* [Arduino IDE](https://www.arduino.cc/en/software) >= 2.0
+* [Teensyduino](https://www.pjrc.com/teensy/tutorial.html) (Optional)
 
 # Usage
 
@@ -36,7 +37,7 @@ All poses are returned in centimeters and radians. All odometry updates should b
 
 The Teensy's Vin port should be connected to +5 V and ground to the Arduino ground. The SDA1 and SCL1 ports on the Teensy (pins 17 and 16) should be connected to SDA and SCL on the Arduino Mega. The camera itself needs +5 V power and ground as well as its SDA and SCL connected to SDA0 and SCL0 on the Teensy (pins 19 and 18).
 
-The camera's top surface should be mounted precisely at 6 cm from the ground. 
+The camera's top surface should be mounted between 10 cm and 20 cm from the ground. Outside of this range, accuracy is not guaranteed.
 
 # Structure
 
