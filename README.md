@@ -20,13 +20,17 @@ Navigate to the ArduinoGPS.zip file in your newly cloned directory and install.
 Once the library is installed, you can include the appropriate headers for the Mega by adding the "GPS.h" header to your code.
 
 - `#include "GPS.h` must be at the top of your main .ino file
-- Instantiate a GPS object like: `GPS gps`
+- Instantiate a GPS object like: `GPS gps(height)` where `height` is the distance of the sensors top surface to the ground in centimeters.
 - Start the GPS object in your with `gps.begin()`
-- Update odometry with `gps.updateOdometry(distance, angle);`
+- Update odometry with `gps.updateOdometry(float distance, float angle);`
 - The distance and angles updates should be given in centimeters and radians relative to the last update.
 - Get the updates pose with  `gps.getPose();`. It returns a robotPose structure.
 - The robotPose structure includes three members: `x, y, theta` in centimeters/radians in the world frame.
 - The world frame is aligned with the marked corner of the field with the y-axis along the short edge and angles measured counter-clockwise from the x-axis.
+
+## Units
+
+All poses are returned in centimeters and radians. All odometry updates should be provided in change in relative orientation in radians and relative distance traveled in centimeters.
 
 ## Hardware and Electronics
 
