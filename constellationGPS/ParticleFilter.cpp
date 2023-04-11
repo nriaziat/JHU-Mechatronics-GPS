@@ -12,36 +12,28 @@ void normalize_angle(float *a);
 void generateMap(point* map);
 void rotate2D(point *in, float theta);
 
+ParticleFilter::ParticleFilter(float height){
+  m_height = height;
+}
+
 ParticleFilter::ParticleFilter() {
+  ParticleFilter(15.4);
 }
 
 void ParticleFilter::begin() {
-  // for (size_t i = 0; i < n_map; i++) {
-  //   m_map[i].x = (i+1) * (200.0 / 8.0);
-  //   m_map[i].y = (i+1) * (100.0 / 8.0);
-  // }
   generateMap(m_map);
-  // generateBrushfire();
   m_n = generateParticles();
 }
 
 void ParticleFilter::begin(robotPose guess) {
-  // for (size_t i = 0; i < n_map; i++) {
-  //   m_map[i].x = (i+1) * (200.0 / 8.0);
-  //   m_map[i].y = (i+1) * (100.0 / 8.0);
-  // }
   generateMap(m_map);
-  // generateBrushfire();
   m_n = generateParticles(guess);
 }
 
 size_t ParticleFilter::generateParticles() {
   std::default_random_engine generator;
   std::normal_distribution<double> norm_theta(0, 1);
-  // if (sizeof(particles)/sizeof(particle) < (x_max * y_max / 4.f)){
-  //   Serial.println("Error: not enough particle space.");
-  //   while (true);
-  // }
+
   float increment = roundf(10.f * sqrt(float(x_max * y_max) / float(sizeof(particles)/sizeof(particle)))) / 10.f;
   size_t i = 0;
   for (float x = 0; x < x_max; x += increment) {
@@ -102,11 +94,6 @@ void ParticleFilter::normalizeWeights() {
       particles[i].weight *= double(m_n);
     }
   }
-  // } else {
-  //   for (size_t i = 0; i < m_n; i++) {
-  //     particles[i].weight = 1;
-  //   }
-  // }
 }
 
 void ParticleFilter::getSensorProbability(const uint *Ix, const uint *Iy, size_t n_points) {
@@ -126,12 +113,6 @@ void ParticleFilter::getSensorProbability(const uint *Ix, const uint *Iy, size_t
         bearing = atan2(y_sens, x_sens);
         x = particles[i].pose.x + range * cos(particles[i].pose.theta + bearing);
         y = particles[i].pose.y + range * sin(particles[i].pose.theta + bearing);
-
-        // if (0 < x and x < x_max and 0 < y and y < y_max){
-        //   min_dist = brushfire_map[uint(x)][uint(y)];
-        // } else {
-        //   min_dist = 10000000;
-        // }
         min_dist = 10000000;
         for (size_t k=0; k < n_map; k++){
           dist = sqrt((x-m_map[k].x)*(x-m_map[k].x) + (y-m_map[k].y)*(y-m_map[k].y));
@@ -157,24 +138,24 @@ sensorReading ParticleFilter::sensorModel(robotPose state) {
   if (centroid_x > x_max || centroid_x < 0 || centroid_y > y_max || centroid_y < 0)
     return output;
 
-  point X, Y, Z, W;
-  X.x = centroid_x + width;
-  X.y = centroid_y + height;
-  Y.x = centroid_x - width,
-  Y.y = centroid_y + height;
-  Z.x = centroid_x + width,
-  Z.y = centroid_y - height;
-  W.x = centroid_x - width,
-  W.y = centroid_y - height;
+  // point X, Y, Z, W;
+  // X.x = centroid_x + width;
+  // X.y = centroid_y + height;
+  // Y.x = centroid_x - width,
+  // Y.y = centroid_y + height;
+  // Z.x = centroid_x + width,
+  // Z.y = centroid_y - height;
+  // W.x = centroid_x - width,
+  // W.y = centroid_y - height;
   size_t j = 0;
   for (size_t i = 0; i < n_map; i++) {
     point P;
     P.x = m_map[i].x - centroid_x;
     P.y = m_map[i].y - centroid_y;
     rotate2D(&P, -state.theta);
-    point center;
-    center.x = centroid_x;
-    center.y = centroid_y;
+    // point center;
+    // center.x = centroid_x;
+    // center.y = centroid_y;
     if (P.x * P.x + P.y * P.y < d) {
       // if ( PointInRectangle( center, width, height, P) ){
       if (px_scaler * P.x + 512 > 0 and px_scaler * P.y + 384 > 0) {
@@ -196,25 +177,39 @@ sensorReading ParticleFilter::sensorModel(robotPose state) {
 }
 
 void ParticleFilter::inputOdometry(float dist, float dtheta) {
+  // Odometry for Holonomic Robots
   // Serial.println("Inputting Odometry");
   std::default_random_engine generator;
   std::normal_distribution<double> norm(0, 0.1);
   std::normal_distribution<double> dist_norm(0, 50);
   for (size_t i = 0; i < m_n; i++) {
-    // float alpha = dtheta;
-    // float alpha_prime = alpha + alpha * norm(generator) + dist * dist_norm(generator);
-    // float beta = 0;
-    // float beta_prime = beta + beta * norm(generator) + dist * dist_norm(generator);
-    // float d_prime = dist + dist * dist_norm(generator) + (alpha + beta) * norm(generator);
+    
     float d_hat = dist + dist_norm(generator);
     float theta_hat = dtheta + norm(generator);
 
-    // particles[i].pose.x += d_prime * cos(particles[i].pose.theta + alpha_prime);
-    // particles[i].pose.y += d_prime * sin(particles[i].pose.theta + alpha_prime);
-    // particles[i].pose.theta += alpha_prime + beta_prime;
     particles[i].pose.x += d_hat / theta_hat * sin(particles[i].pose.theta + dtheta) - d_hat/theta_hat * sin(particles[i].pose.theta);
     particles[i].pose.y += -d_hat / theta_hat * cos(particles[i].pose.theta + dtheta) + d_hat/theta_hat * cos(particles[i].pose.theta);
     particles[i].pose.theta += theta_hat;
+    normalize_angle(&particles[i].pose.theta);
+  }
+}
+
+void ParticleFilter::inputOdometry(float dist, float dtheta1, float dtheta2) {
+  // Odometry for Non Holonomic Robots
+  std::default_random_engine generator;
+  std::normal_distribution<double> norm(0, 0.1);
+  std::normal_distribution<double> dist_norm(0, 50);
+  for (size_t i = 0; i < m_n; i++) {
+    float alpha = dtheta1;
+    float alpha_prime = alpha + alpha * norm(generator) + dist * dist_norm(generator);
+    float beta = dtheta2;
+    float beta_prime = beta + beta * norm(generator) + dist * dist_norm(generator);
+    float d_prime = dist + dist * dist_norm(generator) + (alpha + beta) * norm(generator);
+
+    particles[i].pose.x += d_prime * cos(particles[i].pose.theta + alpha_prime);
+    particles[i].pose.y += d_prime * sin(particles[i].pose.theta + alpha_prime);
+    particles[i].pose.theta += alpha_prime + beta_prime;
+
     normalize_angle(&particles[i].pose.theta);
   }
 }
@@ -240,7 +235,6 @@ void ParticleFilter::resample() {
 
   for (size_t i = 0; i < m_n; i++) {
     // binary search for successor (next higher value)
-    ////////////////
     rand_weight = uniform(generator);
     size_t L = 0;
     size_t R = m_n;
@@ -255,9 +249,6 @@ void ParticleFilter::resample() {
     particles[i] = new_particles[R];
     //////////////
   }
-  // for (size_t i = 0; i < m_n; i++) {
-  //   particles[i].weight = 1.0;
-  // }
   normalizeWeights();
   free(new_particles);
 }
@@ -291,63 +282,6 @@ void ParticleFilter::getMostLikelyParticles(size_t n, particle *out_particles) {
     out_particles[i] = particles[i];
   }
 }
-
-// void ParticleFilter::generateBrushfire(){
-//   Serial.println("starting brushfire.");
-//   for (uint x=0; x<x_max; x++){
-//     for (uint y=0; y<y_max; y++){
-//       brushfire[x][y]=0;
-//     }
-//   }
-//   cppQueue L(sizeof(point), sizeof(brushfire)/sizeof(uint));
-//   int val = 0;
-//   size_t k = 0;
-//   point l[sizeof(brushfire)/sizeof(uint)];
-//   point l2[sizeof(brushfire)/sizeof(uint)];
-//   for (point p : m_map){
-//     brushfire[uint(p.x)][uint(p.y)] = 1;
-//     for (int i=-1; i<2; i++){
-//       for (int j=-1; j<2; j++){
-//         l[k].x = p.x + i;
-//         l[k].y = p.y + j;
-//       }
-//     }
-//     L.push(&l[k]);
-//     k++;
-//   }
-//   k=0;
-//   while (!L.isEmpty()){
-//     point p;
-//     L.pop(&p);
-//     if (brushfire[uint(p.x)][uint(p.y)] == 0){
-//       int min_val = 10000;
-//       for (int i=-1; i<2; i++){
-//         for (int j=-1; j<2; j++){
-//           if (brushfire[uint(p.x) + i][uint(p.y) + j] < min_val){
-//             min_val = brushfire[uint(p.x) + i][uint(p.y) + j];
-//           }
-//           if (brushfire[uint(p.x) + i][uint(p.y) + j] == 0){
-//             l2[k].x = p.x + i;
-//             l2[k].y = p.y + j;
-//             L.push(&l2[k]);
-//             k++;
-//           }
-//         }
-//       }
-//       brushfire[uint(p.x)][uint(p.y)] = 1 + min_val;
-//     }
-//   }
-//   for (size_t x=1; x<x_max; x++){
-//     for (size_t y=1; y<y_max; y++){
-//       Serial.print(brushfire[x][y]);
-//       Serial.print(",");
-//     }
-//     Serial.println();    
-//   }
-//   delay(50000);
-// }
-
-
 
 int sort_desc(const void *cmp1, const void *cmp2) {
   particle a = *((particle *)cmp1);

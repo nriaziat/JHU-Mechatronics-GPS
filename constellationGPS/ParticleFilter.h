@@ -43,11 +43,13 @@ struct point{
 class ParticleFilter
 {
   public:
+    ParticleFilter(float height);
     ParticleFilter();
     void begin();
     void begin(robotPose guess);
     void inputIRCam(const uint *Ix, const uint *Iy, size_t n_point);
     void inputOdometry(float dist, float dtheta);
+    void inputOdometry(float dist, float dtheta1, float dtheta2);
     robotPose getPoseEstimate(OUTPUT_MODE mode);
     void getMostLikelyParticles(size_t n, particle* out_particles);
     sensorReading sensorModel(robotPose state);
@@ -62,6 +64,7 @@ class ParticleFilter
     void getSensorProbability(const uint *Ix, const uint *Iy, size_t n_points);
 
     size_t m_n;
+    float m_height;
     static const size_t n_map = 8;
     point m_map[n_map];
     static const size_t x_max = 244;
