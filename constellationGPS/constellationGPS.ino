@@ -8,7 +8,6 @@ IRCam cam;
 ParticleFilter pf;
 int led_pin = LED_BUILTIN;
 bool led_state = true;
-bool got_odometry = false;
 char msg1Buf[9];
 char msg2Buf[9];
 char msg3Buf[9];
@@ -18,21 +17,39 @@ std::default_random_engine gen;
 std::uniform_real_distribution<double> norm_dist(0, 3);
 int i = 0;
 float radius = 20;
-float dist, dtheta;
+float dtheta;
 uint out_Ix[4], out_Iy[4];
 
+volatile bool got_odometry = false;
+volatile bool pose_ready = false;
+volatile union v_buffer {
+  byte b[4];
+  float fval;
+} v_dist, v_angle;
+
+union buffer {
+  byte b[4];
+  float fval;
+} dist, angle;
+
+COMMUNICATION_MODE mode;
 
 void requestEvent();
 void receiveEvent(int howMany);
 void printParticlesToProcessing();
 
 void setup() {
+  mode = COMMUNICATION_MODE::I2C;
   cam.begin();
   pinMode(led_pin, OUTPUT);
-  Wire1.begin(8);
-  Wire1.onRequest(requestEvent);  // register event
-  Wire1.onReceive(receiveEvent);  // register event
-  // Serial.begin(9600);
+  if (mode == COMMUNICATION_MODE::I2C){
+    Wire1.begin(8);
+    Wire1.onRequest(requestEvent);  // register event
+    Wire1.onReceive(receiveEvent);  // register event
+  } else {
+    Serial1.begin(115200);
+  }
+  Serial.begin(9600);
   // initial_guess.x = 180;
   // initial_guess.y = 60;
   // initial_guess.theta = M_PI / 2.f;
@@ -49,30 +66,77 @@ void loop() {
   uint n = cam.getIx(out_Ix);
   cam.getIy(out_Iy);
   pf.inputIRCam(out_Ix, out_Iy, n);
-  pf_pose = pf.getPoseEstimate(OUTPUT_MODE::MEAN);
+  
+  if (mode == COMMUNICATION_MODE::SER){
+    byte ser_n = Serial1.available();
+    if (ser_n == 9){
+      Serial1.readBytes(dist.b, 4);
+      Serial1.read();
+      Serial1.readBytes(angle.b, 4);
+      got_odometry = true;
+    }
+  }
+
+  if (got_odometry){
+    // Serial.print("Dist: ");
+    // Serial.println(dist.fval);
+    // Serial.print("Angle: ");
+    // Serial.println(angle.fval);
+    if (mode == COMMUNICATION_MODE::I2C){
+      pf.inputOdometry(v_dist.fval, v_angle.fval);
+    } else {
+      pf.inputOdometry(dist.fval, angle.fval);
+    }
+    got_odometry = false;
+  }
+
+  pf_pose = pf.getPoseEstimate(OUTPUT_MODE::MAX);
 
   // printParticlesToProcessing();
   dtostrf(pf_pose.x, 0, 2, msg1Buf);
   dtostrf(pf_pose.y, 0, 2, msg2Buf);
   dtostrf(pf_pose.theta, 0, 2, msg3Buf);
+  pose_ready = true;
+
+  if (pose_ready and mode == COMMUNICATION_MODE::SER){
+    while (true) {
+      if (Serial1.read() == 'p'){
+        Serial1.write(msg1Buf);
+        Serial1.write(",");
+        Serial1.write(msg2Buf);
+        Serial1.write(",");
+        Serial1.write(msg3Buf);
+        pose_ready = false;
+        break;
+      }
+    }
+  }
 }
 
 void requestEvent() {
-  Wire1.write(msg1Buf);
-  Wire1.write(",");
-  Wire1.write(msg2Buf);
-  Wire1.write(",");
-  Wire1.write(msg3Buf);
+  if (pose_ready){
+    Wire1.write(msg1Buf);
+    Wire1.write(",");
+    Wire1.write(msg2Buf);
+    Wire1.write(",");
+    Wire1.write(msg3Buf);
+    pose_ready = false;
+  } 
 }
 
 void receiveEvent(int howMany) {
-  char* buf;
-  Wire1.readBytes(buf, 4);
-  float dist = atof(buf);
-  Wire1.readBytes(buf, 4);
-  float angle = atof(buf);
-  pf.inputOdometry(dist, angle);
-  got_odometry = true;
+  if( howMany == 8)
+  {
+    for( int i=0; i<4; i++)
+    {
+      v_dist.b[i] = Wire1.read();
+    }
+    for( int i=0; i<4; i++)
+    {
+      v_angle.b[i] = Wire1.read();
+    }
+    got_odometry = true;
+  }
 }
 
 void odometry(robotPose* pose, float dist, float dtheta) {
@@ -109,7 +173,7 @@ void odometry(robotPose* pose, float dist, float dtheta) {
 }
 
 void printParticlesToProcessing(){
-    // pf.getMostLikelyParticles(50, pf_particles);
+    pf.getMostLikelyParticles(50, pf_particles);
     for (size_t i = 0; i < 50; i++) {
       Serial.print(i + 1);
       Serial.print(",");
@@ -122,31 +186,12 @@ void printParticlesToProcessing(){
       Serial.print(pf_particles[i].weight);
       Serial.print(",");
     }
-    // Serial.print("0,");
-    // Serial.print(state.x);
-    // Serial.print(",");
-    // Serial.print(state.y);
-    // Serial.print(",");
-    // Serial.print(state.theta);
-    // Serial.print(",1,");
-    // Serial.print("51,");
-    // Serial.print(pf_pose.x);
-    // Serial.print(",");
-    // Serial.print(pf_pose.y);
-    // Serial.print(",");
-    // Serial.print(pf_pose.theta);
-    // Serial.print(",1,");
-    // Serial.println();
-
-    Serial.print("Estimated Point: X: ");
+    Serial.print("51,");
     Serial.print(pf_pose.x);
-    Serial.print(", Y: ");
+    Serial.print(",");
     Serial.print(pf_pose.y);
-    Serial.print(", Theta: ");
-    Serial.println(pf_pose.theta);
-    // float dx = pf_pose.x - state.x;
-    // float dy = pf_pose.y - state.y;
-    // float error = sqrt(dx*dx + dy*dy);
-    // Serial.print("Computed error: ");
-    // Serial.println(error);
+    Serial.print(",");
+    Serial.print(pf_pose.theta);
+    Serial.print(",1,");
+    Serial.println();
 }

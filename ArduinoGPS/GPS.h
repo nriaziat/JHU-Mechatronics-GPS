@@ -10,16 +10,22 @@ struct robotPose {
   float theta;
 };
 
+enum class COMMUNICATION_MODE {
+  SER,
+  I2C
+};
 
 class GPS
 {
   public:
     GPS();
+    GPS(COMMUNICATION_MODE mode);
     void begin();
     robotPose getPose();
     void updateOdometry(float dist, float angle);
 
   private:
+    COMMUNICATION_MODE _mode;
     static const int _msg_size = 29;
     char _msg[_msg_size];
     const char *_delimiter = ",";

@@ -12,16 +12,16 @@ public class Point{
 };
 
 Point[] map;
-float w = tan(0.29) * 244.0;
-float h = tan(0.2) * 244.0;
-float d;
+//float w = tan(0.29) * 202.0;
+//float h = tan(0.2) * 202.0;
+//float d;
 
 void setup()
 {
   size(1024, 512);
-  w = int(map(w, 0, 244, 0, width));
-  h = int(map(h, 0, 244, 0, width));
-  d = (w * w + h * h);
+  //w = int(map(w, 0, 244, 0, width));
+  //h = int(map(h, 0, 244, 0, width));
+  //d = (w * w + h * h);
   // I know that the first port in the serial list on my mac
   // is always my  FTDI adaptor, so I open Serial.list()[0].
   // On Windows machines, this generally opens COM1.
@@ -33,50 +33,22 @@ void setup()
   for (int i=0; i < map.length; i++){
     map[i] = new Point();
   }
-  //map[0].x = 10;
-  //map[0].y = 10;
-  //map[1].x = 10;
-  //map[1].y = 70;
-  //map[2].x = 50;
-  //map[2].y = 50;
-  //map[3].x = 100;
-  //map[3].y = 100;
-  //map[4].x = 120;
-  //map[4].y = 10;
-  //map[5].x = 150;
-  //map[5].y = 90;
-  //map[6].x = 200;
-  //map[6].y = 30;
-  //map[7].x = 30;
-  //map[7].y = 30;
-  //map[8].x = 45;
-  //map[8].y = 110;
-  //map[9].x = 190;
-  //map[9].y = 50;
-  //map[10].x = 175;
-  //map[10].y = 10;
-  //map[11].x = 20;
-  //map[11].y = 80;
-  //map[12].x = 160;
-  //map[12].y = 40;
-  //map[13].x = 120;
-  //map[13].y = 60;
-  map[0].x = 10;
-  map[0].y = 90;
-  map[1].x = 40;
-  map[1].y = 90;
-  map[2].x = 70;
-  map[2].y = 30;
-  map[3].x = 100;
-  map[3].y = 30;
-  map[4].x = 160;
-  map[4].y = 60;
-  map[5].x = 160;
-  map[5].y = 30;
-  map[6].x = 220;
-  map[6].y = 90;  
-  map[7].x = 220;
-  map[7].y = 60;
+  map[0].x = 63.5;
+  map[0].y = 61;
+  map[1].x = 82.6;
+  map[1].y = 71.1;
+  map[2].x = 121.9;
+  map[2].y = 61;
+  map[3].x = 121.9;
+  map[3].y = 31.8;
+  map[4].x = 111.8;
+  map[4].y = 100.3;
+  map[5].x = 141;
+  map[5].y = 71.1;
+  map[6].x = 161.3;
+  map[6].y = 50.8;  
+  map[7].x = 190.5;
+  map[7].y = 71.1;  
 
   for (Point p : map){
     p.x = int(map(p.x, 0, 244, 0, width));
@@ -103,32 +75,37 @@ void draw()
         for (int i=0; i<inputs.length-4; i+=5){
           index = int(inputs[i]);
           if (inputs[i+1] > 0 && inputs[i+2] > 0){
-            inputs[i+1] = int(map(inputs[i+1], 0, 244, 0, width));
-            inputs[i+2] = int(map(inputs[i+2], 0, 122, 0, height));
-            if (index > 50){              
-              noFill();
-              stroke(0, 0, 255);
-              ellipse(inputs[i+1], inputs[i+2], sqrt(d), sqrt(d));
+            int px_input_x = int(map(inputs[i+1], 0, 244, 0, width));
+            int px_input_y = int(map(inputs[i+2], 0, 122, 0, height));
+            if (index > 50){  
+              
+              //noFill();
+              //stroke(0, 0, 255);
+              //ellipse(inputs[i+1], inputs[i+2], sqrt(d), sqrt(d));
               fill(0, 0, 255);
               stroke(0, 0, 0);
               radius = 10;
+              print("X: ");
+              print(inputs[i+1]);
+              print(", Y: ");
+              println(inputs[i+2]);
             } else if (index > 0){
               fill(255, 0, 0);
               radius = 3 + int(inputs[i+4] * 5);
             } else {
               noFill();
               stroke(0, 255, 0);
-              ellipse(inputs[i+1], inputs[i+2], sqrt(d), sqrt(d));
+              //ellipse(inputs[i+1], inputs[i+2], sqrt(d), sqrt(d));
               stroke(0, 0, 0);
               fill(0,255,0);
               radius = 25;
             }
-            ellipse(inputs[i+1], inputs[i+2], radius, radius);
-            float x1 = inputs[i+1] - radius/2 * cos(inputs[i+3]);
-            float x2 = inputs[i+1] + radius/2 * cos(inputs[i+3]);
-            float y1 = inputs[i+2] - radius/2 * sin(inputs[i+3]);
-            float y2 = inputs[i+2] + radius/2 * sin(inputs[i+3]);
-            line(x1, y1, x2, y2);
+            ellipse(px_input_x, px_input_y, radius, radius);
+            //float x1 = inputs[i+1] - radius/2 * cos(inputs[i+3]);
+            //float x2 = inputs[i+1] + radius/2 * cos(inputs[i+3]);
+            //float y1 = inputs[i+2] - radius/2 * sin(inputs[i+3]);
+            //float y2 = inputs[i+2] + radius/2 * sin(inputs[i+3]);
+            //line(x1, y1, x2, y2);
           }
         }
       }

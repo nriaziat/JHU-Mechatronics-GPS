@@ -97,11 +97,11 @@ void ParticleFilter::normalizeWeights() {
 }
 
 void ParticleFilter::getSensorProbability(const uint *Ix, const uint *Iy, size_t n_points) {
-  double sigma = 20;
+  double sigma = 40;
   float x_sens, y_sens, range, bearing, x, y, min_dist, dist;
 
   for (size_t i = 0; i < m_n; i++) {
-    if (particles[i].pose.x < 0 || particles[i].pose.y < 0){
+    if (particles[i].pose.x < 0 || particles[i].pose.y < 0 || particles[i].pose.x > 244 || particles[i].pose.y > 122){
       particles[i].weight = 0;
     } 
     else {
@@ -128,8 +128,8 @@ void ParticleFilter::getSensorProbability(const uint *Ix, const uint *Iy, size_t
 }
 
 sensorReading ParticleFilter::sensorModel(robotPose state) {
-  const float width = tan(0.29) * 244.0;
-  const float height = tan(0.2) * 244.0;
+  const float width = tan(0.29) * 202.0;
+  const float height = tan(0.2) * 202.0;
   const float d = (width * width + height * height);
   auto centroid_x = state.x;
   auto centroid_y = state.y;
@@ -180,8 +180,8 @@ void ParticleFilter::inputOdometry(float dist, float dtheta) {
   // Odometry for Holonomic Robots
   // Serial.println("Inputting Odometry");
   std::default_random_engine generator;
-  std::normal_distribution<double> norm(0, 0.1);
-  std::normal_distribution<double> dist_norm(0, 50);
+  std::normal_distribution<double> norm(0, 0.05);
+  std::normal_distribution<double> dist_norm(0, 2);
   for (size_t i = 0; i < m_n; i++) {
     
     float d_hat = dist + dist_norm(generator);
@@ -197,8 +197,9 @@ void ParticleFilter::inputOdometry(float dist, float dtheta) {
 void ParticleFilter::inputOdometry(float dist, float dtheta1, float dtheta2) {
   // Odometry for Non Holonomic Robots
   std::default_random_engine generator;
-  std::normal_distribution<double> norm(0, 0.1);
-  std::normal_distribution<double> dist_norm(0, 50);
+  std::normal_distribution<double> norm(0, 0.05);
+  std::normal_distribution<double> dist_norm(0, 2);
+  
   for (size_t i = 0; i < m_n; i++) {
     float alpha = dtheta1;
     float alpha_prime = alpha + alpha * norm(generator) + dist * dist_norm(generator);
@@ -344,21 +345,21 @@ void generateMap(point* map){
   // map[12].y = 40;
   // map[13].x = 120;
   // map[13].y = 60;
-  map[0].x = 10;
-  map[0].y = 90;
-  map[1].x = 40;
-  map[1].y = 90;
-  map[2].x = 70;
-  map[2].y = 30;
-  map[3].x = 100;
-  map[3].y = 30;
-  map[4].x = 160;
-  map[4].y = 60;
-  map[5].x = 160;
-  map[5].y = 30;
-  map[6].x = 220;
-  map[6].y = 90;  
-  map[7].x = 220;
-  map[7].y = 60;
+  map[0].x = 63.5;
+  map[0].y = 61;
+  map[1].x = 82.6;
+  map[1].y = 71.1;
+  map[2].x = 121.9;
+  map[2].y = 61;
+  map[3].x = 121.9;
+  map[3].y = 31.8;
+  map[4].x = 111.8;
+  map[4].y = 100.3;
+  map[5].x = 141;
+  map[5].y = 71.1;
+  map[6].x = 161.3;
+  map[6].y = 50.8;  
+  map[7].x = 190.5;
+  map[7].y = 71.1;  
 
 }
